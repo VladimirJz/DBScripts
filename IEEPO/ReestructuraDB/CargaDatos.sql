@@ -6,7 +6,7 @@
 
 -- BASE DE DATOS ORIGEN : PRODUCCION
 -- BASE DE DATOS DESTINO :  IEEPOSYNC
-
+-- Comentario
 GO
 -- Parametros que pueden 
 DECLARE @Par_BDOrigen varchar(50) ='IEEPO'
