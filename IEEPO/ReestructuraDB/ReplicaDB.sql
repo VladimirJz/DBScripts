@@ -17,6 +17,7 @@ print '..terminado'
 
 -- Cargamos los Catalogos de Tablas
 
+exec dbo.[MIGCARGAAUTO] 10000,'S','S'
 
 select * from CATTABLASMIG
 
