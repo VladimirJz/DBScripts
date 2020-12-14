@@ -52,3 +52,11 @@ FROM sys.foreign_keys AS f
 INNER JOIN sys.foreign_key_columns AS fc
    ON f.object_id = fc.constraint_object_id
 WHERE OBJECT_NAME (f.referenced_object_id) = 'Trubros'
+
+--- Detallle de ultimas consultas ejectadas.
+
+SELECT deqs.last_execution_time AS [Time], dest.TEXT AS [Query]
+FROM sys.dm_exec_query_stats AS deqs
+CROSS APPLY sys.dm_exec_sql_text(deqs.sql_handle) AS dest
+-- where dest.TEXT like '%generaConceptosTabularesEInformados%'
+ORDER BY deqs.last_execution_time DESC

@@ -15,6 +15,8 @@ INSERT INTO #tmpperiodos
     SELECT ID_Periodo 
     FROM IEEPO.dbo.CalenNomina 
     WHERE FechaIni>='2020-01-01' order by ID_Periodo desc -- 178
+
+    
 	drop table if exists SQLINSERT
 	CREATE TABLE SQLINSERT
 	(
@@ -55,3 +57,7 @@ WHILE  @MaxPeriodo >= @Periodo
 
 -- mostramos las sentencias en bloques individuales
 select * from SQLINSERT
+
+
+select count(*) from IEEPOSYNC.dbo.nom_histpagos
+select count(*) from IEEPOSYNC.dbo.histpagosdetalle

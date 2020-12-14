@@ -10,16 +10,45 @@ print '.. terminado'
 print 'Obteniendo información del destino..'
 exec [dbo].[MIGRELACIONOBJETOS]
 print '..terminado'
+print 'Deshabilitando restricciones por FK'
+exec [dbo].[MIGDROPKEYS]
+print '..terminado'
 
--- 1 ) ObjetosDB/CATTABLES.sql Catalogo de Objetos definidos por sistemas.
 
--- Borramos las tablas usadas por el script de procesos anteriores.
+print 'Cargando el resto de Tablas'
+exec dbo.[MIGCARGAAUTO] 10000,'M','S'
+print '..terminado'
 
--- Cargamos los Catalogos de Tablas
 
-exec dbo.[MIGCARGAAUTO] 10000,'S','S'
+
 
 select * from CATTABLASMIG
 
-select * from RELACIONOBJETOSMIG
+select * from RELACIONOBJETOSMIG order by NumFilasOrigen desc
 
+select top 200 * from HPlazas
+select top 200 * from FUP_DetalleCampos
+selec
+
+select top 10 * from IEEPO.dbo.Nom_pagos_hist --  (p
+
+Nom_pagos_hist -- Periodo
+nom_histpagos -- Periodo
+histpagosdetalle -- Periodo  -- (Ok)
+Recalculo_histpagos -- Periodo (Ok)
+Hvectores -- Periodo  
+Folio_Recibos -- Periodo
+RastreoImpuesto -- Periodo
+HistPagos -- Periodo --  (OK)
+Hplazas -- Movimiento OK?
+FUP_DetalleCampos -- ?? 
+Hcontinuidad -- añoqna
+
+
+-- cargamos primero las tabla que contienen Fechas como referecia 
+
+-- HPlazas
+
+
+
+select top 200 * from IEEPO.dbo.Hplazas where Movimiento >='2020-01-01'

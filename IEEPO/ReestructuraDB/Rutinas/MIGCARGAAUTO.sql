@@ -1,7 +1,7 @@
 GO
 drop PROCEDURE  if exists [dbo].[MIGCARGAAUTO]
 go
-create PROCEDURE [dbo].[MIGCARGAAUTO] ( @Par_MaxNumRegistros int,  -- Se copian solo tablas con un NumFilas < Par_NumReg
+create PROCEDURE [dbo].[MIGCARGAAUTO] ( @Par_MaxNumRegistros bigint,  -- Se copian solo tablas con un NumFilas < Par_NumReg
                                         @Par_Salida char ,-- S= Si(Completa) , M=Minimal , N=No 
                                         @Par_Ejecuta char -- S= SI , NO=NO ,                                     
                                         )
@@ -11,10 +11,12 @@ BEGIN
  SET NOCOUNT ON 
 
 
-    DECLARE @NumMaxReg      int  -- numero maximo de registros para cargar la tabla completa
+    DECLARE @NumMaxReg      bigint  -- numero maximo de registros para cargar la tabla completa
     DECLARE @Entero_cero    int 
+
     SET @Entero_cero=0
-    SET @NumMaxReg=10000 -- probar  
+    SET @NumMaxReg=@Par_MaxNumRegistros -- probar  
+    
 
 
     drop table if exists #TMPMIGTABLAS
@@ -42,9 +44,10 @@ BEGIN
 
         WHILE @count > 0
         BEGIN
-            DECLARE @ObjectName VARCHAR(50) = (SELECT TOP(1) NombreTabla FROM #TMPMIGTABLAS);
-            DECLARE @ObjectID VARCHAR(50)   = (SELECT TOP(1) ObjectID FROM #TMPMIGTABLAS);
-            DECLARE @ColumNames VARCHAR(max)= ( SELECT STRING_AGG(concat('[',COLUMN_NAME,']'),',') 
+            DECLARE @ObjectName     VARCHAR(50) = (SELECT TOP(1) NombreTabla FROM #TMPMIGTABLAS)
+            DECLARE @NumRegistros   BIGINT      = (SELECT TOP(1) NumFilas FROM #TMPMIGTABLAS) 
+            DECLARE @ObjectID       VARCHAR(50) = (SELECT TOP(1) ObjectID FROM #TMPMIGTABLAS)
+            DECLARE @ColumNames     VARCHAR(max)= ( SELECT STRING_AGG(concat('[',COLUMN_NAME,']'),',') 
                                                 FROM INFORMATION_SCHEMA.COLUMNS
                                                 WHERE TABLE_NAME = @ObjectName and TABLE_CATALOG='IEEPO')
             DECLARE @SQLErrMen  varchar(1000)
@@ -59,13 +62,13 @@ BEGIN
             -- Vaciamos la tabla destino
             IF(@Par_Salida='M')
                     BEGIN
-                    PRINT 'Procesando Tabla : '+ @ObjectName
+                    PRINT 'Procesando Tabla : ['+ @ObjectName + '] '
                     END
             BEGIN TRY 
                     SET @SQLCommand= 'TRUNCATE TABLE IEEPOSYNC.dbo.' + @ObjectName
                     -- PRINT 'TRUNCAR : '+ @SQLCommand  
                     IF(@Par_Salida='S')
-                        PRINT 'Truncando tabla : '+ @SQLCommand  
+                        PRINT 'Borrando Información existente: '+ @SQLCommand  
                 -- EXEC (@sqlCommand)
             END TRY          
             BEGIN CATCH  
@@ -82,7 +85,8 @@ BEGIN
                         SET @IDENTITY= 'S'
                         SET @SQLSET     = 'SET IDENTITY_INSERT IEEPOSYNC.dbo.' +@ObjectName + ' ON ' 
                         SET @SQLSETOFF  = 'SET IDENTITY_INSERT IEEPOSYNC.dbo.' +@ObjectName + ' OFF ' 
-                        PRINT 'IDENTITY : ' + @SQLSET
+                        IF(@Par_Salida='S')
+                        PRINT 'Ajustando Parametros : ' + @SQLSET
                         --EXEC (@sqlComfdfdfmand)
                     END TRY  
                     BEGIN CATCH  
@@ -94,14 +98,20 @@ BEGIN
             BEGIN TRY    
                 
                 SET @SQLCommand=@SQLSET + 'insert into IEEPOSYNC.dbo.' + @ObjectName + '( ' + @ColumNames +' ) select '+ @ColumNames + ' from ' + @ObjectName + ' ' + @SQLSETOFF
-                PRINT 'INSERT.. '
-                -- EXEC (@sqlCommand)
-                -- exec MIGBITACORAALT @ObjectID,@ObjectName,'N' ,@IDENTITY 
+                IF(@Par_Salida='S')
+                PRINT 'Insertando datos: INSERT INTO ' + @ObjectName + '...'
+                EXEC (@sqlCommand)
+                exec MIGBITACORAALT @ObjectID,@ObjectName,'N' ,@IDENTITY 
             END TRY
             BEGIN CATCH  
                 SET @SQLErrMen=(select ERROR_MESSAGE())
                 PRINT '##ERROR## ' + @SQLErrMen
             END CATCH
+
+             IF(@Par_Salida='M')
+                    BEGIN
+                    PRINT '      \_Procesados : '+ cast(@NumRegistros as VARCHAR) + ' registros. '
+                    END
 
             DELETE TOP (1) FROM #TMPMIGTABLAS
             SELECT @count = COUNT(*) FROM #TMPMIGTABLAS;

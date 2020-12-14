@@ -328,8 +328,9 @@ GO
 
     -- Guardamos tablas alimentadas manualmente (15)
 
-select * from SYNCBITACORA
+select * from SYNCBITACORA where ObjectName like '%Config%'
 select * from LASTUPDATE
+-- truncate table SYNCBITACORA
 
 /* solo para prueba
 

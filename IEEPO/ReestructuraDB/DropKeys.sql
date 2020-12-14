@@ -11,6 +11,8 @@ GO
                 ON fk.parent_object_id = ct.[object_id]
                 INNER JOIN  [IEEPOSYNC].sys.schemas AS cs 
                 ON ct.[schema_id] = cs.[schema_id]
+
+                select @SQLDropFK
     EXEC (@SQLDropFK)
 
 
