@@ -60,3 +60,14 @@ FROM sys.dm_exec_query_stats AS deqs
 CROSS APPLY sys.dm_exec_sql_text(deqs.sql_handle) AS dest
 -- where dest.TEXT like '%generaConceptosTabularesEInformados%'
 ORDER BY deqs.last_execution_time DESC
+
+
+-- Mover Archivos de DB temp
+
+
+SELECT 'ALTER DATABASE tempdb MODIFY FILE (NAME = [' + f.name + '],'
+ + ' FILENAME = ''Z:\MSSQL\DATA\' + f.name
+ + CASE WHEN f.type = 1 THEN '.ldf' ELSE '.mdf' END
+ + ''');'
+FROM sys.master_files f
+WHERE f.database_id = DB_ID(N'tempdb');
