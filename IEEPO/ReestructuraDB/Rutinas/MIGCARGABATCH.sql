@@ -67,7 +67,7 @@ DECLARE @SQLErrMen  varchar(1000)
 
 -- TABLAS QUE SE FILTRAN POR PERIODO
 -- Se hace un loop por cada periodo desde N Años Atras...        
-
+/*
 
 drop table if exists #tmpperiodos
 CREATE TABLE #tmpperiodos
@@ -252,7 +252,7 @@ WHILE  @MaxPeriodo >= @Periodo
 
 
         -- Controlar el commit
-
+*/
         SET @Periodo=@Periodo+1
     END
 

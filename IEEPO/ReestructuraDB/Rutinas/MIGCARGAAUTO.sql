@@ -49,7 +49,7 @@ BEGIN
             DECLARE @ObjectID       VARCHAR(50) = (SELECT TOP(1) ObjectID FROM #TMPMIGTABLAS)
             DECLARE @ColumNames     VARCHAR(max)= ( SELECT STRING_AGG(concat('[',COLUMN_NAME,']'),',') 
                                                 FROM INFORMATION_SCHEMA.COLUMNS
-                                                WHERE TABLE_NAME = @ObjectName and TABLE_CATALOG='IEEPO')
+                                                WHERE TABLE_NAME = @ObjectName and TABLE_CATALOG='IEEPOSYNC')
             DECLARE @SQLErrMen  varchar(1000)
             DECLARE @SQLCommand varchar(max) 
             DECLARE @SQLSET     varchar(1000)
@@ -69,7 +69,7 @@ BEGIN
                     -- PRINT 'TRUNCAR : '+ @SQLCommand  
                     IF(@Par_Salida='S')
                         PRINT 'Borrando Información existente: '+ @SQLCommand  
-                -- EXEC (@sqlCommand)
+                    EXEC (@sqlCommand)
             END TRY          
             BEGIN CATCH  
                 SET @SQLErrMen=(select ERROR_MESSAGE())
@@ -86,8 +86,8 @@ BEGIN
                         SET @SQLSET     = 'SET IDENTITY_INSERT IEEPOSYNC.dbo.' +@ObjectName + ' ON ' 
                         SET @SQLSETOFF  = 'SET IDENTITY_INSERT IEEPOSYNC.dbo.' +@ObjectName + ' OFF ' 
                         IF(@Par_Salida='S')
-                        PRINT 'Ajustando Parametros : ' + @SQLSET
-                        --EXEC (@sqlComfdfdfmand)
+                        PRINT 'Ajustando Parametros : ' + @ColumNames 
+                        -- EXEC (@sqlCommand)
                     END TRY  
                     BEGIN CATCH  
                         SET @SQLErrMen=(select ERROR_MESSAGE())
@@ -97,9 +97,9 @@ BEGIN
             
             BEGIN TRY    
                 
-                SET @SQLCommand=@SQLSET + 'insert into IEEPOSYNC.dbo.' + @ObjectName + '( ' + @ColumNames +' ) select '+ @ColumNames + ' from ' + @ObjectName + ' ' + @SQLSETOFF
+                SET @SQLCommand=@SQLSET + ' insert into IEEPOSYNC.dbo.' + @ObjectName + '( ' + @ColumNames +' ) select '+ @ColumNames + ' from IEEPO.dbo.' + @ObjectName + ' ' + @SQLSETOFF
                 IF(@Par_Salida='S')
-                PRINT 'Insertando datos: INSERT INTO ' + @ObjectName + '...'
+                PRINT @SQLCommand --'Insertando datos: INSERT INTO ' + @ObjectName + '...'
                 EXEC (@sqlCommand)
                 exec MIGBITACORAALT @ObjectID,@ObjectName,'N' ,@IDENTITY 
             END TRY
