@@ -603,7 +603,30 @@ BEGIN
     insert into CATTABLASMIG (Esquema,NombreTabla) VALUES ('dbo','Recalculo_Periodos')
     insert into CATTABLASMIG (Esquema,NombreTabla) VALUES ('dbo','RCT_Programa')
     insert into CATTABLASMIG (Esquema,NombreTabla) VALUES ('dbo','TAdic')
- 
+
+    -- Por petición de Noe Ramirez se agregan tablas:
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','Bit_HPrimaPensionado')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','Bit_HMontoNutrivalePensionado')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','hcuentas_pension_archivos')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','hcuentas_pension_detalle')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','RBeneficiarios_SE')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','Bit_HDias15Pensionado')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','HSuspensionPagosx')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','RBeneficiarioISEA')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','Bit_HResponsa_Pensionada')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','Bit_HDiasEconomicosPensionado')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','hcuentas_pension2')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','hcuentas_pension')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','Bit_HNutrivalePensionado')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','Bit_HMontoAguinaldoPensionado')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','Bit_HAguinaldoPensionado')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','deduccionpensionalmacen')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','datosPensionesTranfer')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','HTbeneficiarioISEA')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','SaldosPorConcepto_Bajas')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','TResponsa_PensionadaDOS')
+    INSERT INTO CATTABLASMIG (Esquema,NombreTabla)VALUES('dbo','HTproporcional_Absoluto')
+
  SET NOCOUNT OFF    
   
 END
