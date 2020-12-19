@@ -1,10 +1,11 @@
-
+DECLARE @Var_TotalAnios int
 DECLARE @Par_Anios  int
 DECLARE @Var_FechaIni DATETIME
 DECLARE @Var_FechaFin DATETIME
 DECLARE @Var_AnioIni int
 DECLARE  @Var_NumRegistros INT
 SET @Par_Anios=5 -- Parametro
+
 
 
 SET @Var_AnioIni    =   year((dateadd(year,(@Par_Anios * -1 ),getdate())))
@@ -16,7 +17,7 @@ SET @Var_FechaFin= dateadd(minute,-1,dateadd(year,1,@Var_FechaIni))
 TRUNCATE TABLE IEEPOSYNC.dbo.Hplazas
 
 --
-
+-- print @Var_AnioIni
 DECLARE @SQLCommand varchar(max) 
 DECLARE @SQLWhere    varchar(500)
 DECLARE @SQLSET     varchar(1000)
@@ -25,14 +26,17 @@ DECLARE @ObjectName  varchar(200)
 DECLARE @ColumNames VARCHAR(max)
 DECLARE @SQLErrMen  varchar(1000)
 
+    SET @Var_TotalAnios=82
+    SET @Var_FechaIni='1938-01-01 00:00:00.000'
+    SET @Var_FechaFin='1938-12-31 23:59:00.000'
 
     DECLARE @count INT;
     SELECT @count =0
 
 
--- TABLAS QUE SE FILTRAN POR FECHA --
+-- HPLAZAS SE VA COMPLETA --
 --  ---------------------------
-    WHILE @count < @Par_Anios
+    WHILE @count < @Var_TotalAnios
     BEGIN
         SET @Var_FechaIni=DATEADD(year,1,@Var_FechaIni)
         SET @Var_FechaFin=DATEADD(year,1,@Var_FechaFin)
@@ -52,7 +56,7 @@ DECLARE @SQLErrMen  varchar(1000)
         BEGIN TRY
             EXEC (@sqlCommand)
             EXEC MIGBITACORAALT 0,'Hplazas','N','N'
-
+        SET @SQLErrMen=''
         END TRY
         BEGIN CATCH
                  SET @SQLErrMen=(select ERROR_MESSAGE())
