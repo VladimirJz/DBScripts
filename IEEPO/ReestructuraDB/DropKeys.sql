@@ -57,3 +57,5 @@ select * from [IEEPOSYNC].sys.schemas
 
     EXEC (@SQLDropFK)
     PRINT 'Llaves Eliminadas'
+
+     -- verificar si se puede hacer con un STORED
