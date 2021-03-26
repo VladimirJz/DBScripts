@@ -1,3 +1,67 @@
+TMP_PERIODOS
+TMP_DATOSEC
+TMP_DETALLENOM
+TMP_PERIODOS
+TMP_NOMINAPAGOS
+TMP_FILACONCEPTOS
+TMP_NOMINACONCEPTOS
+TMP_LAYOUTNOMINA
+TMP_CONCEPTOS
+TMP_CHEQUES
+TMP_UDP
+TMP_BAJAS
+TMP_ALTAEMPLEADO
+
+drop table if exists TMP_ALTAEMPLEADO
+create table TMP_ALTAEMPLEADO
+(
+    EmpleadoID int,
+    FechaAlta varchar(6)
+)
+
+drop table if exists TMP_BAJAS
+create table TMP_BAJAS
+(
+    EmpleadoID int,
+    NumComprobante int,
+    Plaza varchar(50),
+    CURP varchar(25),
+    FechaBaja varchar(6),
+    MotivoBaja varchar(500)
+)
+
+
+drop table if exists TMP_UDP
+create table  TMP_UDP
+(
+    NumComprobante int,
+    Plaza varchar (50),
+    CURP varchar(25),
+    udp int
+)
+
+
+drop table if exists TMP_CHEQUES
+Create table TMP_CHEQUES
+(
+    NumComprobante int,
+    Plaza varchar(50),
+    CURP varchar(25),
+    Cheque int
+) 
+
+drop table if exists TMP_CONCEPTOS
+create table TMP_CONCEPTOS
+(   ID int IDENTITY(1,1),
+    NumComprobante int,
+    Plaza varchar(50),
+    CURP varchar(18),
+    TipoConcepto varchar(2),
+    Concepto varchar(3),
+    Importe decimal(18,2),
+    Consecutivo int
+
+)
 
 drop table if exists TMP_PERIODOS
 CREATE TABLE dbo.TMP_PERIODOS
@@ -44,8 +108,8 @@ INCLUDE ([DetalleID],[NumComprobante],[CURP],[Plaza],[Clave_CCT],[Banco])
 go
 
 
-drop table if exists TMP_LAYOUTNOMINA
-CREATE TABLE TMP_LAYOUTNOMINA
+drop table if exists TMP_NOMINAPAGOS
+CREATE TABLE TMP_NOMINAPAGOS
 (NUM int IDENTITY(1,1),	
 NUM_UR char(3),	
 NOMBRE_UR char(6),
@@ -85,6 +149,47 @@ NumComprobante int
 )
 
 
+drop table if exists TMP_LAYOUTNOMINA
+CREATE TABLE TMP_LAYOUTNOMINA
+(NUM int IDENTITY(1,1),	
+NUM_UR char(3),	
+NOMBRE_UR char(6),
+TIPO_NOMINA char (1),
+MODALIDAD varchar(10),
+RFC char(13),	
+CURP char(18),
+NOMBRE_EMPLEADO varchar(200),
+PLAZA varchar(25),	
+UNIDAD int,	
+CENTRO_TRABAJO varchar(20),	
+CLAVE_PUESTO varchar(10),
+HORAS int,
+QNA_INI char(6),
+QNA_FIN char(6),
+QNA_PROC char(6),
+TIPO_PAGO char(2),
+NUM_CHEQUE	int,
+NUM_CTA varchar (25), 
+BANCO varchar(25),
+TOTAL_PERCEPCIONES decimal(18,2),
+TOTAL_DEDUCCIONES decimal(18,2),
+TOTAL_NETO decimal(18,2),
+FOLIO_FISCAL varchar(50),
+ORIGEN_RECURSO varchar(50),	
+CTA_PAGADORA varchar(25),
+BANCO_PAGADORA varchar(25),	
+TIPO_NUMERO varchar(10),	
+FECHA date,	
+IMPORTE decimal(18,2),
+QUINCENA_ALTA varchar(8),
+QUINCENA_BAJA varchar(8),
+MOTIVO_BAJA varchar(100),
+ESTATUS varchar (10),
+EmpleadoID int,
+NumComprobante int
+)
+
+
 
 
 
@@ -112,7 +217,7 @@ create TABLE TMP_DETALLENOM
     Estatus varchar(25),
     Subestatus varchar(150),
     FormaPago varchar(25),
-    Banco int,
+    Banco varchar(30),
     ClaveBanco varchar(25),
     Validada varchar(10),
     Quincena varchar(6),
@@ -128,36 +233,6 @@ create index idx_Layout1 on TMP_DETALLENOM  (NumComprobante,Plaza,CURP,PeriodoID
 --drop index TMP_DETALLENOM.idx_NumComprobante_curp_plaza
 
 -- create index idx_NumComprobante_curp_plaza  on TMP_DETALLENOM (PeriodoID) include (NumComprobante,CURP,Plaza)   --40 s ( 35 4)
-
-
-select top 100 * from Detalle_Nomina
-CREATE TABLE [dbo].[Detalle_Nomina](
-	[id_detalle] [int] IDENTITY(1,1) NOT NULL,
-	[NUM_COMPROBANTE] [int] NULL,
-	[NOMBRE] [varchar](50) NULL,
-	[PRIMER_APELLIDO] [varchar](50) NULL,
-	[SEGUNDO_APELLIDO] [varchar](50) NULL,
-	[CURP] [varchar](20) NULL,
-	[RFC] [varchar](15) NULL,
-	[NSS] [varchar](15) NULL,
-	[CLAVE_PLAZA] [varchar](25) NULL,
-	[CLAVE_CCT] [varchar](10) NULL,
-	[FECHA_PAGO] [date] NULL,
-	[FECHA_INICIO] [date] NULL,
-	[FECHA_TERMINO] [date] NULL,
-	[IMPORTE_PERCEPCIONES] [float] NULL,
-	[IMPORTE_DEDUCCIONES] [float] NULL,
-	[IMPORTE_NETO] [float] NULL,
-	[ESTATUS] [varchar](25) NULL,
-	[SUBESTATUS] [varchar](150) NULL,
-	[FORMA_PAGO] [varchar](25) NULL,
-	[BANCO] [int] NULL,
-	[CLABE_BANCO] [varchar](25) NULL,
-	[VALIDADA] [varchar](10) NULL,
-	[QUINCENA] [varchar](6) NULL,
-	[id_emp] [int] NULL,
-	[id_plaza] [int] NULL,
-	[nomina] [varchar](150) NULL,
 
 
 drop table if exists TMP_REPORTENOM
@@ -199,13 +274,6 @@ create table TMP_REPORTENOM
 
 
 
-)
 
 
 
-secuencia, 'R20' AS num_ur, 'OAXACA' AS nombre_ur, tipo_nomina, modalidad_trabajador, clave_puesto, horas, tipo_pago, unidad_distribucion, num_cheque,
-              clabe_interbancaria, banco, empleado, RFC, CURP, plaza, CLAVE_CCT AS claveCct, NUM_COMPROBANTE AS numComprobante, 
-            	IMPORTE_PERCEPCIONES AS importePercepciones, IMPORTE_DEDUCCIONES AS importeDeducciones, IMPORTE_NETO AS importeNeto,
-              TIPO_CONCEPTO AS tipoConcepto, concepto, importe, CLAVE_PLAZA, tmpQuincena.fechaalta, tmpQuincena.fechabaja, bajamotivo, tmpQuincena.ESTATUS,
-              tmpQuincena.FECHA_INICIO AS qna_ini, tmpQuincena.FECHA_TERMINO AS qna_fin, tmpQuincena.FECHA_PAGO AS qna_proc
-              , tmpQuincena.id_emp
