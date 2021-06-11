@@ -1,6 +1,4 @@
--- ==== Layout Quincena  ====
-exec PLANTILLANOMINAREP '02/2020',0,'N' -- Par: Quincena , (0=Todos,1=Solo mil), 'N' sin uso
-
+exec PLANTILLANOMINAREP '02/2017',0,'N' -- Par: Quincena , (0=Todos,1=Solo mil), 'N' sin uso
 -- =========================
 GO
 drop PROCEDURE  if exists [dbo].[PLANTILLANOMINAREP]
@@ -35,7 +33,7 @@ DECLARE @Var_SQLConceptosRep nvarchar(max)
 DECLARE @Var_SQLSelectRep nvarchar(max)
 DECLARE @Var_SQLFromRep nvarchar(max)
 DECLARE @Var_SQLReporteLayout nvarchar(max)
-
+declare @TiempoEx datetime -- for debug
 
 
 
@@ -44,9 +42,9 @@ DECLARE @Var_SQLReporteLayout nvarchar(max)
 truncate table TMP_PERIODOS
 truncate table TMP_DATOSEC
 truncate table TMP_DETALLENOM
-truncate table TMP_PERIODOS
 truncate table TMP_NOMINAPAGOS
 truncate table TMP_LAYOUTNOMINA
+truncate table TMP_CONCEPTOS
 
 
 -- Tablas dinamicas
@@ -73,6 +71,8 @@ BEGIN
     -- Aislamos el conjunto de datos con los que trabajaremos.
     if(@Par_Limite=0)
     BEGIN
+		set @TiempoEx= getdate() --  << Debug
+
         insert into TMP_DATOSEC(NumComprobante,     TipoNominaID,   Periodo,        Plaza,      CURP,
                                 TipoConcepto,       Concepto,       Descripcion,    Importe,    BaseCalculoISR,
                                 Detalle,            PeriodoID )
@@ -81,6 +81,7 @@ BEGIN
                                 [TIPO_CONCEPTO],    [CONCEPTO],	    [DESCRIPCION], 	[IMPORTE],  [BASE_CALCULO_ISR],
                                 [DETALLE],          @Var_PeriodoID 
                         from  Datos_Enviados_Ctos whit(nolock) where PERIODO=@Par_Periodo OPTION(maxdop 4) -- 1 m 37 segundos
+		print  concat('>>','Insert DATOSEC ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
     END
     ELSE
     BEGIN
@@ -97,6 +98,7 @@ BEGIN
     print 'Detalle Nomina'
 	
     -- Copiamos los registros de DETALLE NOMINA
+	set @TiempoEx= getdate() --  << Debug
     insert into TMP_DETALLENOM( DetalleID,  NumComprobante, Nombre,         PrimerApellido,         SegundoApellido,
                                 CURP,       RFC,            NSS,            Plaza,                  Clave_CCT,
                                 FechaPago,  FechaInicio,    FechaTermino,   ImportePercepciones,    ImporteDeducciones,
@@ -113,7 +115,7 @@ BEGIN
                             from Detalle_Nomina  whit(nolock) 
                             where  QUINCENA= @Var_PeriodoNumID 
                             and nomina='ORDINARIA' OPTION(maxdop 4) -- @Var_PeriodoNumID -- 8 segndos (12s)
-                    
+      print  concat('>>','Insert TMP_DETALLENOM ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug             
  -- 03 Minutos 52 Segundos
  -- TMP_DATOSEC = 1,983,437
  -- TMP_DETALLENOM = 112,019
@@ -122,14 +124,14 @@ END
 
 -- Actualizamos el Banco
 print 'Actualizar Banco'
-
+set @TiempoEx= getdate() --  << Debug
 update dn
 SET dn.Banco=bnc.Banco
 FROM TMP_DETALLENOM dn inner join [db.ieepo.gob.mx\MSSQLSERVER2,1414].ieepo.dbo.bancos bnc ON dn.banco = bnc.cvebanco
-
+print  concat('>>','update BANCO ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 -- 
 print 'Carga base a Formato Plantilla'
-
+set @TiempoEx= getdate() --  << Debug
 insert into TMP_NOMINAPAGOS (  NUM_UR,         NOMBRE_UR,          TIPO_NOMINA,        MODALIDAD,      RFC,
                                 CURP,           NOMBRE_EMPLEADO,    PLAZA,              CLAVE_PUESTO,   HORAS,
                                 QNA_INI,        QNA_FIN,            QNA_PROC,           TIPO_PAGO,      NUM_CHEQUE,
@@ -172,10 +174,10 @@ from TMP_DATOSEC dec inner join TMP_DETALLENOM  dn on dec.PeriodoID=dn.PeriodoID
 and  dn.NumComprobante=dec.NumComprobante 
 and dn.CURP = dec.CURP and dn.Plaza = dec.Plaza   --  1,983,421 rows  -- 06 minutos  x 20 min +
 OPTION(MAXDOP 4)
-
+print  concat('>>','Insert TMP_NOMINAPAGOS ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 
 print 'Agrupando registros'
-
+set @TiempoEx= getdate() --  << Debug
 insert into TMP_LAYOUTNOMINA (  NUM_UR,         NOMBRE_UR,          TIPO_NOMINA,        MODALIDAD,      RFC,
                                 CURP,           NOMBRE_EMPLEADO,    PLAZA,              CLAVE_PUESTO,   HORAS,
                                 QNA_INI,        QNA_FIN,            QNA_PROC,           TIPO_PAGO,      NUM_CHEQUE,
@@ -188,10 +190,10 @@ insert into TMP_LAYOUTNOMINA (  NUM_UR,         NOMBRE_UR,          TIPO_NOMINA,
                                 NUM_CTA,        TOTAL_PERCEPCIONES, TOTAL_DEDUCCIONES,  TOTAL_NETO,     QUINCENA_ALTA,
                                 QUINCENA_BAJA, MOTIVO_BAJA,         'ACTIVO' as ESTATUS,   EmpleadoID,     NumComprobante
                 from TMP_NOMINAPAGOS --- 112,018 (1:23s)
-
+print  concat('>>','INSERT TMP_LAYOUTNOMINA ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 
 print 'Identificando Conceptos'
-
+set @TiempoEx= getdate() --  << Debug
 
 insert into TMP_CONCEPTOS(  NumComprobante,     Plaza,  CURP,   TipoConcepto,   Concepto,
                             Importe,            Consecutivo)
@@ -199,7 +201,7 @@ insert into TMP_CONCEPTOS(  NumComprobante,     Plaza,  CURP,   TipoConcepto,   
                             Importe,            row_number() over(partition by NumComprobante,Plaza,CURP order by NumComprobante)  
                     from TMP_DATOSEC OPTION(maxdop 4) -- 01 minuto
 
-
+print  concat('>>','Insert CONCEPTOS ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 
 SET @Var_NumConceptos= (select max(NumConceptos) from ( select count(*)NumConceptos 
                                                         from TMP_DATOSEC 
@@ -209,7 +211,7 @@ SET @Var_NumConceptos= (select max(NumConceptos) from ( select count(*)NumConcep
 SET @Var_Contador = 1 ;
 SET @Var_SQLCreateTable='CREATE TABLE TMP_FILACONCEPTOS (NumComprobante int, Plaza varchar (50), CURP varchar(25), '
 SET @Var_SQLCreateTableNom='CREATE TABLE TMP_NOMINACONCEPTOS (NumComprobante int, Plaza varchar (50), CURP varchar(25), '
-
+set @TiempoEx= getdate() --  << Debug
 WHILE @Var_Contador <= @Var_NumConceptos
 BEGIN
     SET @Var_SQLColumns=concat(@Var_SQLColumns,'CASE WHEN (Consecutivo)=', cast(@Var_Contador as char) ,' THEN max(TipoConcepto) else '''' END ,'  )
@@ -233,12 +235,14 @@ BEGIN
 
     SET @Var_Contador =@Var_Contador + 1
 END
+print  concat('>>','While Conceptos ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 
-SET @Var_SQLGroup=concat('INSERT INTO TMP_NOMINACONCEPTOS SELECT max(NumComprobante),max(Plaza),max(CURP), ', STUFF(@Var_SQLGroup,LEN(@Var_SQLGroup),1,' ') )
-SET @Var_SQLGroup= concat(@Var_SQLGroup,' from TMP_FILACONCEPTOS group by NumComprobante,Plaza,CURP ')
 
 SET @Var_SQLSelect = 'INSERT INTO TMP_FILACONCEPTOS SELECT max(NumComprobante),max(Plaza),max(Curp),'
 SET @Var_SQLFrom =  ' 0.0  from TMP_CONCEPTOS GROUP by NumComprobante,Plaza,Curp,Consecutivo'
+
+SET @Var_SQLGroup=concat('INSERT INTO TMP_NOMINACONCEPTOS SELECT max(NumComprobante),max(Plaza),max(CURP), ', STUFF(@Var_SQLGroup,LEN(@Var_SQLGroup),1,' ') )
+SET @Var_SQLGroup= concat(@Var_SQLGroup,' from TMP_FILACONCEPTOS group by NumComprobante,Plaza,CURP ')
 
 SET @Var_SQLCreateTableNom  = STUFF(@Var_SQLCreateTableNom,LEN(@Var_SQLCreateTableNom),1,')')
 SET @Var_SQLCreateTable     = concat (@Var_SQLCreateTable,' Total decimal(18,2))')
@@ -250,15 +254,20 @@ select @Var_SQLCreateTableNom*/
 SET @Var_SQLInsert= concat( @Var_SQLSelect,@Var_SQLColumns,@Var_SQLFrom) 
 
 print 'Creando tablas de conceptos (dinamico)'
-
+set @TiempoEx= getdate() --  << Debug
 exec sp_executesql @Var_SQLCreateTable
-
+print  concat('>>','Crear Tabla dinamica TMP_FILACONCEPTOS ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
+set @TiempoEx= getdate() --  << Debug
 exec sp_executesql @Var_SQLCreateTableNom
+print  concat('>>','Crear tabla TMP_NOMINACONCEPTOS ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 /*select @Var_SQLInsert
 select @Var_SQLGroup -- 17 minutos (112,019)*/
+set @TiempoEx= getdate() --  << Debug
 exec sp_executesql @Var_SQLInsert -- 4: 41 minutos (full)
+print  concat('>>','Poblando tabla TMP_FILACONCEPTOS ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
+set @TiempoEx= getdate() --  << Debug
 exec sp_executesql @Var_SQLGroup
-
+print  concat('>>','Insertando en TMP_NOMINACONCEPTOS ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 /*
 select * from TMP_NOMINACONCEPTOS
 select * from TMP_FILACONCEPTOS
@@ -271,40 +280,43 @@ update TMP_FILACONCEPTOS set
 print 'Actualizando información Adicional en Plantilla'
 print '... Cheques'
 truncate table TMP_CHEQUES
+set @TiempoEx= getdate() --  << Debug
 insert into TMP_CHEQUES
           select NumComprobante,dn.Plaza,dn.CURP,cheque 
           from TMP_DETALLENOM dn inner join rel_cheque_recibo rcr ON rcr.id_detnom = dn.DetalleID
           LEFT JOIN hist_nomina hn ON rcr.id_hist = hn.id_hist
-
+print  concat('>>','Insert TMP_CHEQUES ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
+set @TiempoEx= getdate() --  << Debug
 update lay    
 set lay.NUM_CHEQUE=ch.Cheque
 from 
 TMP_CHEQUES ch inner join TMP_LAYOUTNOMINA lay
 on ch.NumComprobante=lay.NumComprobante and ch.Plaza=lay.PLAZA and ch.CURP=lay.CURP
-
+print  concat('>>','Actualizando Cheques ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 print '... UDP'
 
 -- ==> UDP
 truncate table TMP_UDP
+set @TiempoEx= getdate() --  << Debug
 insert into TMP_UDP
 select  NumComprobante,dn.Plaza,dn.CURP,tlp28.udp  from 
 TMP_DETALLENOM dn LEFT JOIN [db.ieepo.gob.mx\MSSQLSERVER2,1414].ieepo.dbo.vistatablalongitud vtl ON vtl.Clave = dn.CLAVE_CCT 
           LEFT JOIN [db.ieepo.gob.mx\MSSQLSERVER2,1414].ieepo.dbo.TablaLongitudProp_28 tlp28 ON vtl.Id_Nodo = tlp28.id_nodo -- 111811
+print  concat('>>','Insertando UDP ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 
-
-
+set @TiempoEx= getdate() --  << Debug
 update lay    
 set lay.UNIDAD=udp.udp
 from 
 TMP_UDP udp inner join TMP_LAYOUTNOMINA lay
 on udp.NumComprobante=lay.NumComprobante and udp.Plaza=lay.PLAZA and udp.CURP=lay.CURP
-
+print  concat('>>','Actualizando UDP ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 
 -- == Bajas Empleado ==
 print '... Baja de Empleados'
 
 truncate TABLE TMP_BAJAS
-
+set @TiempoEx= getdate() --  << Debug
 insert into TMP_BAJAS
   select distinct EmpleadoID,NumComprobante,Plaza,CURP,dbo.fechaToAnioQuincena(fdd.FechaIni)FechaBaja,fmm.Descripcion
   from TMP_DETALLENOM dn inner join ( 
@@ -316,8 +328,8 @@ insert into TMP_BAJAS
   on dn.EmpleadoID=fd.id_emp and fdd.Id_Plaza=PlazaID
   where fd.Id_Estatus=2 and ftm.id_tipomovimiento in (4,6,7,8) and fdd.id_motivomovimiento not in (11,12,119,120)
   and convert(date,fdd.FechaIni) < dn.FechaPago -- 04 s
-  
- 
+  print  concat('>>','Insert TMP_BAJAS ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
+ set @TiempoEx= getdate() --  << Debug
 update lay    
 set lay.QUINCENA_BAJA=baj.FechaBaja,
     lay.MOTIVO_BAJA=baj.MotivoBaja,
@@ -326,24 +338,26 @@ from
 TMP_BAJAS baj inner join TMP_LAYOUTNOMINA lay
 on baj.EmpleadoID=lay.EmpleadoID -- 01 s
 -- Comprobante/Plaza / CURP
-
+print  concat('>>','Actualizando Bajas ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 
 -- == Fechas de Alta
 
 print '... Alta de Empleados'
 
 truncate table TMP_ALTAEMPLEADO
+set @TiempoEx= getdate() --  << Debug
 insert into TMP_ALTAEMPLEADO
     select max(id_emp)EmpleadoID,dbo.fechaToAnioQuincena(max(Fecha))FechaAlta from  [db.ieepo.gob.mx\MSSQLSERVER2,1414].ieepo.dbo.hfecha_alta_sep
     group by id_emp -- 06 s
-
+print  concat('>>','insert TMP_ALTAEMPLEADO',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
+set @TiempoEx= getdate() --  << Debug
 update lay    
 set lay.QUINCENA_ALTA=alt.FechaAlta
 from 
 TMP_ALTAEMPLEADO alt inner join TMP_LAYOUTNOMINA lay
 on alt.EmpleadoID=lay.EmpleadoID -- 01 s
 -- Comprobante/Plaza / CURP -- 05 segundos (add index)
-
+print  concat('>>','update FECHAALTA ',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 --  ==  Reporte Final == 
 
 
@@ -356,8 +370,9 @@ SET @Var_SQLFromRep ='FOLIO_FISCAL,ORIGEN_RECURSO,CTA_PAGADORA,BANCO_PAGADORA,TI
 SET @Var_SQLReporteLayout =concat(@Var_SQLSelectRep,@Var_SQLConceptosRep,@Var_SQLFromRep)
 
 -- == SALIDA
+set @TiempoEx= getdate() --  << Debug
 exec sp_executesql @Var_SQLReporteLayout
-
+print  concat('>>','Salida Reporte',datediff(second,@TiempoEx,getdate()),' S.') -- << Debug
 
 
  /*
