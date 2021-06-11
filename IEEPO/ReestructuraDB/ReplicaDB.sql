@@ -11,6 +11,8 @@ print 'Obteniendo información del destino..'
 exec [dbo].[MIGRELACIONOBJETOS]
 print '..terminado'
 print 'Deshabilitando restricciones por FK'
+
+-- Eliminar Indices para la carga de archivos 
 exec [dbo].[MIGDROPKEYS]
 print '..terminado'
 
@@ -20,6 +22,9 @@ exec dbo.[MIGCARGAAUTO] 10000,'M','S'
 print '..terminado'
 
 
+
+-- Reconstruir Llaves Indices
+-- Reconstruir Llaves Foraneas
 
 
 select * from CATTABLASMIG
